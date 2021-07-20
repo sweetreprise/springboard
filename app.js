@@ -4,85 +4,115 @@ const input = document.querySelector('#new-task');
 const form = document.querySelector('#todo');
 const checkBox = document.querySelectorAll('input[type=checkbox]');
 
+
+//saves unfinished tasks to local storage
+function updateUnfinished() {
+    const unfinishedTasks = document.querySelectorAll('#unfinished div[class="list"]');
+    const unfinishedArray = [];
+
+    for(let i = 0; i <unfinishedTasks.length; i++) {
+        unfinishedArray.push(unfinishedTasks[i].innerText);
+    }
+
+    localStorage.setItem('unfinishedTasks', JSON.stringify(unfinishedArray));
+    
+}
+
+//saves finished tasks to local storage
+function updateFinished() {
+    const finishedTasks = document.querySelectorAll('#finished div[class="list"]');
+    const finishedArray = [];
+
+    for(let i = 0; i < finishedTasks.length; i++) {
+        finishedArray.push(finishedTasks[i].innerText);
+    }
+
+    localStorage.setItem('finishedTasks', JSON.stringify(finishedArray));
+}
+
+//get saved tasks from local storage
+function populateUI() {
+    const unfinishedTasks = JSON.parse(localStorage.getItem('unfinishedTasks'));
+
+    console.log(unfinishedTasks);
+
+    if(unfinishedTasks === null || unfinishedTasks.length <= 0) {
+        unfinished.innerHTML = '<p>add tasks below!</p>';
+    } else {
+        for(i = 0; i < unfinishedTasks.length; i++) {
+            const newDiv = document.createElement('div');
+            const newTask = document.createElement('label');
+            const newCheckbox = document.createElement('input');
+            newCheckbox.setAttribute('type', 'checkbox');
+            newTask.innerText= unfinishedTasks[i];
+            newDiv.append(newCheckbox);
+            newDiv.append(newTask);
+            unfinished.append(newDiv);
+            newDiv.classList.add('list');
+        }
+    }
+
+    const finishedTasks = JSON.parse(localStorage.getItem('finishedTasks'));
+
+    if(finishedTasks === null || finishedTasks.length <=0) {
+        finished.innerHTML = '<p>finished tasks! click to delete</p>';
+    } else {
+        for (i = 0; i < finishedTasks.length; i++) {
+        const newDiv = document.createElement('div');
+        const newTask = document.createElement('label');
+        newDiv.setAttribute('class', 'list');
+        newDiv.setAttribute('style', 'text-decoration: line-through;');
+        newDiv.append(newTask);
+        finished.append(newDiv);
+        newTask.innerText = finishedTasks[i];
+        }
+    }
+}
+
+
 //add values to unfinished list
 form.addEventListener ('submit', function(e){
     e.preventDefault();
+
+    if(input.value.trim() === '') {
+        alert('must be a valid text input!');
+    } else {
     const newDiv = document.createElement('div');
     const newTask = document.createElement('label');
     const newCheckbox = document.createElement('input');
     newCheckbox.setAttribute('type', 'checkbox');
-    newTask.innerText= ' ' + input.value;
-    input.value = '';
+    newTask.innerText= ' ' + input.value.trim();
     newDiv.append(newCheckbox);
     newDiv.append(newTask);
     unfinished.append(newDiv);
     newDiv.classList.add('list');
 
-    save();
+    }
+
+    form.reset();
+    updateUnfinished();
 });
 
+//move task to finished list
 unfinished.addEventListener ('click', function(e){
-    // console.log(e.target.tagName);
     if(e.target.tagName === 'INPUT') {
         e.target.parentElement.style.textDecoration="line-through";
         finished.append(e.target.parentElement);
         e.target.remove();
     }
 
-    save();
+    updateUnfinished();
+    updateFinished();
 });
 
+//remove finished task
 finished.addEventListener ('click', function(e){
-    console.log(e.target.tagName);
-    if(e.target.tagName === 'DIV' || 'LABEL') {
-        e.target.remove();
+    if(e.target.tagName === 'LABEL') {
+        e.target.parentElement.remove();
     }
-    save();
+    
+    updateFinished();
 })
 
-
-//save values to local storage
-function save() {
-    window.localStorage.unfinished = unfinished.innerHTML;
-    window.localStorage.finished = finished.innerHTML;
-}
-
-//get items from local storage
-function get() {
-    let storedUnfinished = window.localStorage.unfinished;
-    let storedFinished = window.localStorage.finished;
-    if (!storedUnfinished) {
-        unfinished.innerHTML = '<div class="list"><input type="checkbox"/><label for="checkbox"></label> create a task below to add to this list!</div>';
-    }
-    else {
-        unfinished.innerHTML = storedUnfinished;
-    }
-
-    if(!storedFinished) {
-        finished.innerHTML ='<p>click items in this box to delete</p>';
-    }
-    else {
-        finished.innerHTML = storedFinished;
-    }
-}
-
-get();
-
-
-
-// const editMode = document.querySelector('#edit');
-// const div = document.querySelectorAll('div[class=list]')
-
-// editMode.addEventListener ('click', function(e){
-//     const removeBtn = document.createElement('button');
-//     removeBtn.innerText = 'remove';
-//     editMode.classList.toggle('editmode');
-    // div.append(removeBtn);
-    // arrayDivs = Array.prototype.slice.call(div);
-    // for(let divs of arrayDivs) {
-    //     arrayDivs.append(removeBtn);
-    // }
-// })
-
-//i was trying to made an 'edit-mode' where if you clicked on edit, remove buttons would be appended to divs with the class 'list' (on both finished and unfinished lists) and by clicking on the remove, the whole div would be removed. but it's a little over my head right now so i kept it simple.
+populateUI()
 
